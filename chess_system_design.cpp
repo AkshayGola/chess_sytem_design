@@ -1,48 +1,64 @@
 using namespace std;
 
-class block {
+class Block {
     int x;
     int y;
-    piece * p;
+    Piece * p;
     public:
-        block(int x, int y)
+        Block(int x, int y)
         {
             this->x = x;
             this->y = y;
             this->p = NULL;
         }
+        piece * getPiece ()
+        {
+            return this->p;
+        }
+        void setPiece (piece *p)
+        {
+            this->p = p;
+        }
 };
 
-class player {
+class Player {
     private:
         bool iswhite;
         bool isturn;
 };
 
-class piece {
+class Piece {
     private:
-        bool is_white;
-        bool is_alive;
+        bool isWhite;
+        bool isAlive;
 
     public:
-        piece ()
+        Piece ()
         {
-            this->is_white = true;
-            this->is_alive = true;
+            this->isWhite = true;
+            this->isAlive = true;
         }
-        void set_is_white(bool is_white)
+        void setIsWhite(bool is_white)
         {
-            this->is_white = is_white;
+            this->isWhite = is_white;
         }
-        bool get_is_white()
+        bool getIsWhite()
         {
-            return is_white;
+            return isWhite;
         }
-        virtual bool can_move(block start, block end) = 0;
+                bool getIsAlive()
+        {
+            return isAlive;
+        }
+        void setIsAlive(bool alive)
+        {
+            this->isAlive = alive;
+        }
+        virtual bool can_move(Block start, Block end) = 0;
 };
 
 
-class king extends piece {
+class king extends Piece {
     public:
         bool can_move(block b1, block b2) override {
             if ((b1.x - b2.x) <= 1 && (b1.y - b2.y) <= 1)
@@ -56,7 +72,7 @@ class king extends piece {
         }
 };
 
-class queen extends piece {
+class queen extends Piece {
     public:
         bool can_move(block b1, block b2) override {
             if (((b1.x - b2.x) == (b1.y - b2.y)) || (b1.x - b2.x) == 0 || (b1.y - b2.y) == 0)
@@ -70,48 +86,54 @@ class queen extends piece {
         }
 };
 
-class game {
-    board block[8][8];
-    player p1;
-    player p2;
-    int status;
+enum GameStatus {
+    ACTIVE,
+    BLACK_WIN,
+    WHITE_WIN
+};
+
+class Game {
+    Block Board[8][8];
+    Player p1;
+    Player p2;
+    GameStatus status;
     int turn;
-    bool make_move(player p, block b1, block b2)
+    bool makeMove(Player p, Block b1, Block b2)
     {
-        if (player p.isturn == false)
+        if (Player p.isturn == false)
         {
             cout << "Invalid Move" << '\n';
             return;
         }
 
-        if (b1.peice == NULL)
+        if (b1.p == NULL)
         {
             cout << "Invalid Move" << '\n';
             return;
         }
 
-        if (b1.peice.can_move(b1, b2) == false)
+        if (b1.p.can_move(b1, b2) == false)
         {
             cout << "Invalid Move" << '\n';
             return false;
         }
 
-        if (b2.piece.iswhite == NULL)
+        if (b2.p.iswhite == NULL)
         {
-            b1.piece = NULL;
-            b2.piece = p;
+            b1.setPiece(NULL);
+            b2.setPiece(p);
         }
 
-        if (b2.piece.iswhite == p.iswhite)
+        if (b2.p.iswhite == p.iswhite)
         {
             cout << "Invalid Move" << '\n';
             return false;
         }
         else
         {
-            b1.piece = NULL;
-            b2.piece.is_alive = false;
-            b2.piece = p;
+            b1.p = NULL;
+            b2.p.is_alive = false;
+            b2.p = p;
         }
 
     }
