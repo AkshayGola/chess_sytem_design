@@ -6,13 +6,13 @@ using namespace std;
 class Block {
     int x;
     int y;
-    Piece * p;
+    Piece* PiecePtr;
     public:
-        Block(int x, int y)
+        Block(int x, int y, Piece* peice)
         {
             this->x = x;
             this->y = y;
-            this->p = NULL;
+            this->p = peice;
         }
         Piece * getPiece()
         {
@@ -22,12 +22,27 @@ class Block {
         {
             this->p = p;
         }
+        int getx() {
+            return this->x;
+        }
+        int gety() {
+            return this->y;
+        }
 };
 
 class Player {
     private:
         bool iswhite;
         bool isturn;
+
+    public:
+        Player() = delete;
+
+        Player(bool iswhite, bool isturn)
+        {
+            iswhite = this->iswhite;
+            isturn = this->isturn;
+        }
     
     friend Game;
 };
@@ -63,7 +78,7 @@ class Piece {
 };
 
 
-class king: public Piece {
+class King: public Piece {
     public:
         bool can_move(Block b1, Block b2) {
             if ((b1.x - b2.x) <= 1 && (b1.y - b2.y) <= 1)
@@ -77,7 +92,7 @@ class king: public Piece {
         }
 };
 
-class queen: public Piece {
+class Queen: public Piece {
     public:
         bool can_move(Block b1, Block b2) {
             if (((b1.x - b2.x) == (b1.y - b2.y)) || (b1.x - b2.x) == 0 || (b1.y - b2.y) == 0)
@@ -98,7 +113,7 @@ enum GameStatus {
 };
 
 class Game {
-    Game* gamePtr;
+    static Game* gamePtr;
     Block Board[8][8];
     Player p1;
     Player p2;
@@ -108,10 +123,16 @@ class Game {
 
 
     Game() {
-        gamePtr = nullptr;
         turn = 0;
-        Player p1 = Player();
-        Player p2 = Player();
+        Player p1 = Player(true, true);
+        Player p2 = Player(false, false);
+
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Board[i][j] = Block(i, j, NULL);
+            }
+        }
+
     }
 
 
@@ -161,11 +182,10 @@ class Game {
 
     Game* getGame() {
         if (gamePtr == NULL) {
-            Game();
+            this->gamePtr = new Game();
         } 
         else {
             return gamePtr;
         }
     }
-
 };
