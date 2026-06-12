@@ -8,23 +8,24 @@ class Block {
     int y;
     Piece* PiecePtr;
     public:
-        Block(int x, int y, Piece* peice)
-        {
+        Block(int x, int y, Piece* peice) {
             this->x = x;
             this->y = y;
-            this->p = peice;
+            this->PiecePtr = peice;
         }
-        Piece * getPiece()
-        {
-            return this->p;
+
+        Piece* getPiecePtr() {
+            return this->PiecePtr;
         }
-        void setPiece (Piece *p)
-        {
-            this->p = p;
+
+        void setPiecePtr(Piece *peice) {
+            this->PiecePtr = peice;
         }
+
         int getx() {
             return this->x;
         }
+
         int gety() {
             return this->y;
         }
@@ -33,47 +34,92 @@ class Block {
 class Player {
     private:
         bool iswhite;
-        bool isturn;
 
     public:
         Player() = delete;
 
-        Player(bool iswhite, bool isturn)
-        {
+        Player(bool iswhite) {
             iswhite = this->iswhite;
-            isturn = this->isturn;
         }
     
     friend Game;
 };
 
+
+class canMoveStrategy {
+    public:
+        virtual bool can_move(Block start, Block end) = 0;
+};
+
+class canMoveKingStrategy: public canMoveStrategy {
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+class canMoveQueenStrategy: public canMoveStrategy {
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+class canMoveKnightStrategy: public canMoveStrategy {
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+class canMoveBishopStrategy: public canMoveStrategy {
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+class canMoveRookStrategy: public canMoveStrategy{
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+class canMovePawnStrategy: public canMoveStrategy {
+    bool can_move(Block start, Block end) {
+
+    }
+};
+
+
 class Piece {
     private:
         bool isWhite;
         bool isAlive;
+        string PieceType;
 
     public:
-        Piece ()
-        {
+        Piece () {
             this->isWhite = true;
             this->isAlive = true;
         }
-        void setIsWhite(bool is_white)
-        {
+
+        void setIsWhite(bool is_white) {
             this->isWhite = is_white;
         }
-        bool getIsWhite()
-        {
+
+        bool getIsWhite() {
             return isWhite;
         }
-                bool getIsAlive()
-        {
+
+        bool getIsAlive() {
             return isAlive;
         }
-        void setIsAlive(bool alive)
-        {
+
+        void setIsAlive(bool alive) {
             this->isAlive = alive;
         }
+
+        string getPieceType() {
+            return this->PieceType;
+        }
+
         virtual bool can_move(Block start, Block end) = 0;
 };
 
@@ -81,28 +127,49 @@ class Piece {
 class King: public Piece {
     public:
         bool can_move(Block b1, Block b2) {
-            if ((b1.x - b2.x) <= 1 && (b1.y - b2.y) <= 1)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            canMoveStrategy* MoveStrategy = new canMoveKingStrategy;
+            return MoveStrategy->can_move(b1, b2);
         }
 };
 
 class Queen: public Piece {
     public:
         bool can_move(Block b1, Block b2) {
-            if (((b1.x - b2.x) == (b1.y - b2.y)) || (b1.x - b2.x) == 0 || (b1.y - b2.y) == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            canMoveStrategy* MoveStrategy = new canMoveQueenStrategy;
+            return MoveStrategy->can_move(b1, b2);
+        }
+};
+
+
+class Bishop: public Piece {
+    public:
+        bool can_move(Block b1, Block b2) {
+            canMoveStrategy* MoveStrategy = new canMoveBishopStrategy;
+            return MoveStrategy->can_move(b1, b2);
+        }
+};
+
+class Knight: public Piece {
+    public:
+        bool can_move(Block b1, Block b2) {
+            canMoveStrategy* MoveStrategy = new canMoveKnightStrategy;
+            return MoveStrategy->can_move(b1, b2);
+        }
+};
+
+class Rook: public Piece {
+    public:
+        bool can_move(Block b1, Block b2) {
+            canMoveStrategy* MoveStrategy = new canMoveRookStrategy;
+            return MoveStrategy->can_move(b1, b2);
+        }
+};
+
+class Pawn: public Piece {
+    public:
+        bool can_move(Block b1, Block b2) {
+            canMoveStrategy* MoveStrategy = new canMovePawnStrategy;
+            return MoveStrategy->can_move(b1, b2);
         }
 };
 
@@ -115,64 +182,69 @@ enum GameStatus {
 class Game {
     static Game* gamePtr;
     Block Board[8][8];
-    Player p1;
-    Player p2;
+    Player player[2];
     GameStatus status;
     int turn;
-    mutex mtx;
-
 
     Game() {
         turn = 0;
-        Player p1 = Player(true, true);
-        Player p2 = Player(false, false);
+        player[0] = new Player(true);
+        player[1] = new Player(false);
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 Board[i][j] = Block(i, j, NULL);
             }
         }
-
     }
 
 
-    bool makeMove(Player p, Block b1, Block b2)
+    bool makeMove(int playerInd, Block b1, Block b2)
     {
-        if (p.isturn == false)
-        {
+        if (status != ACTIVE) {
+            cout << "Game Over!!" << '\n';
+            return;
+        }
+
+        if (playerInd != turn) {
             cout << "Invalid Move" << '\n';
             return;
         }
 
-        if (b1.p == NULL)
-        {
+        if (b1.getPiecePtr() == NULL) {
             cout << "Invalid Move" << '\n';
             return;
         }
 
-        if (b1.p.can_move(b1, b2) == false)
-        {
+        if (b1.getPiecePtr()->can_move(b1, b2) == false) {
             cout << "Invalid Move" << '\n';
             return false;
         }
 
-        if (b2.p.iswhite == NULL)
-        {
-            b1.setPiece(NULL);
-            b2.setPiece(p);
-        }
-
-        if (b2.p.iswhite == p.iswhite)
-        {
+        if (b1.getPiecePtr()->getIsWhite() == b2.getPiecePtr()->getIsWhite()) {
             cout << "Invalid Move" << '\n';
             return false;
         }
-        else
-        {
-            b1.p = NULL;
-            b2.p.is_alive = false;
-            b2.p = p;
+
+
+        if (b2.getPiecePtr() != nullptr) {
+            b2.getPiecePtr()->setIsAlive(false);
+            if(b2.getPiecePtr()->getPieceType() == "King") {
+                if (b1.getPiecePtr()->getIsWhite() == true) {
+                    cout << "White WINS!!";
+                    status = WHITE_WIN;
+                }
+                else {
+                    cout << "Black WINS!!";
+                    status = BLACK_WIN;
+                }
+            }
         }
+        b2.setPiecePtr(b1.getPiecePtr());
+        b1.setPiecePtr(nullptr);
+
+        turn = turn++;
+        turn%2;
     }
 
 
